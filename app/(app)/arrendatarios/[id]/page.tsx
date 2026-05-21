@@ -174,6 +174,7 @@ export default async function ArrendatarioDetailPage({ params }: PageProps) {
             <Suspense fallback={<Spinner />}>
               <TenantPaymentSection
                 tenantId={tenant.id}
+                tenant={tenant}
                 payments={payments}
                 properties={properties}
               />

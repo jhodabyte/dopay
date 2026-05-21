@@ -48,7 +48,6 @@ function AppShellInner({ children, userFullName, userEmail }: AppShellProps) {
           subtitle={config.subtitle}
           ctaLabel={config.ctaLabel}
           onCtaClick={config.onCtaClick}
-          notificationCount={config.notificationCount}
           onMobileMenuClick={() => setMobileOpen(true)}
         />
         <main

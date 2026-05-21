@@ -291,6 +291,7 @@ export default function PropertyDetailClient({ property, tenant, payments }: Pro
                           <th className="pb-3 text-left font-medium" style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Concepto</th>
                           <th className="pb-3 text-left font-medium" style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Fecha</th>
                           <th className="pb-3 text-right font-medium" style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Monto</th>
+                          <th className="pb-3 text-left font-medium" style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Método</th>
                           <th className="pb-3 text-center font-medium" style={{ color: 'var(--color-text-muted)', fontSize: '12px' }}>Estado</th>
                         </tr>
                       </thead>
@@ -311,6 +312,9 @@ export default function PropertyDetailClient({ property, tenant, payments }: Pro
                             </td>
                             <td className="py-3 text-right whitespace-nowrap font-medium" style={{ color: 'var(--color-text)' }}>
                               {formatCOP(payment.amount)}
+                            </td>
+                            <td className="py-3 pr-2 whitespace-nowrap" style={{ color: 'var(--color-text-secondary)', fontSize: '13px' }}>
+                              {payment.method ? (PAYMENT_METHOD_LABELS[payment.method] ?? payment.method) : '—'}
                             </td>
                             <td className="py-3 text-center">
                               <Badge variant={getPaymentBadgeVariant(payment.status)}>

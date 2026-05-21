@@ -5,17 +5,19 @@ import PaymentsTable from '@/components/payments/PaymentsTable'
 import RegisterPaymentModal from '@/components/payments/RegisterPaymentModal'
 import { formatCOP } from '@/lib/utils'
 import { mockProperties } from '@/lib/mock-data'
-import type { Payment, Property } from '@/lib/types'
+import type { Payment, Property, Tenant } from '@/lib/types'
 import type { PaymentWithDetails } from '@/lib/types'
 
 interface TenantPaymentSectionProps {
   tenantId: string
+  tenant: Tenant
   payments: Payment[]
   properties: Property[]
 }
 
 export default function TenantPaymentSection({
   tenantId,
+  tenant,
   payments,
   properties,
 }: TenantPaymentSectionProps) {
@@ -25,7 +27,7 @@ export default function TenantPaymentSection({
   const paymentsWithDetails: PaymentWithDetails[] = payments.map((payment) => ({
     ...payment,
     property: properties.find((p) => p.id === payment.property_id) ?? null,
-    tenant: null,
+    tenant,
   }))
 
   const paidTotal = payments.filter((p) => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0)

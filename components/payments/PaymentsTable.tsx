@@ -249,15 +249,17 @@ export default function PaymentsTable({
         <table className="w-full text-sm" data-testid="payments-table">
           <thead>
             <tr style={{ borderBottom: '1px solid #F7F8FA' }}>
-              {['Arrendatario', 'Propiedad', 'Concepto', 'Monto', 'Fecha límite', 'Estado', 'Acciones'].map((col) => (
-                <th
-                  key={col}
-                  className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide"
-                  style={{ color: '#9CA3AF' }}
-                >
-                  {col}
-                </th>
-              ))}
+              {['Arrendatario', 'Propiedad', 'Concepto', 'Monto', 'Fecha límite', 'Estado', 'Acciones']
+                .filter((col) => showTenantLinks || col !== 'Arrendatario')
+                .map((col) => (
+                  <th
+                    key={col}
+                    className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide"
+                    style={{ color: '#9CA3AF' }}
+                  >
+                    {col}
+                  </th>
+                ))}
             </tr>
           </thead>
           <tbody>
@@ -290,30 +292,30 @@ export default function PaymentsTable({
                     style={{ backgroundColor: rowBg, borderBottom: '1px solid #F7F8FA' }}
                     data-testid={`payment-row-${payment.id}`}
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
-                          style={{ backgroundColor: '#0062FF' }}
-                        >
-                          {payment.tenant ? getTenantInitials(payment.tenant.name) : '?'}
-                        </div>
-                        {showTenantLinks && payment.tenant ? (
-                          <Link
-                            href={`/arrendatarios/${payment.tenant.id}`}
-                            className="font-medium hover:underline"
-                            style={{ color: '#1A1A1A' }}
-                            data-testid={`tenant-link-${payment.tenant.id}`}
+                    {showTenantLinks && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
+                            style={{ backgroundColor: '#0062FF' }}
                           >
-                            {payment.tenant.name}
-                          </Link>
-                        ) : (
-                          <span className="font-medium" style={{ color: '#1A1A1A' }}>
-                            {payment.tenant?.name ?? '—'}
-                          </span>
-                        )}
-                      </div>
-                    </td>
+                            {payment.tenant ? getTenantInitials(payment.tenant.name) : '?'}
+                          </div>
+                          {payment.tenant ? (
+                            <Link
+                              href={`/arrendatarios/${payment.tenant.id}`}
+                              className="font-medium hover:underline"
+                              style={{ color: '#1A1A1A' }}
+                              data-testid={`tenant-link-${payment.tenant.id}`}
+                            >
+                              {payment.tenant.name}
+                            </Link>
+                          ) : (
+                            <span className="font-medium" style={{ color: '#1A1A1A' }}>—</span>
+                          )}
+                        </div>
+                      </td>
+                    )}
 
                     <td className="px-4 py-3">
                       <p className="font-medium" style={{ color: '#1A1A1A' }}>

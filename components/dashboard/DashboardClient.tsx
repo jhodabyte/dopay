@@ -183,7 +183,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                     width={60}
                   />
                   <Tooltip
-                    formatter={(value: number) => [formatCOP(value), 'Ingresos']}
+                    formatter={(value) => [formatCOP(Number(value)), 'Ingresos']}
                     contentStyle={{
                       borderRadius: '10px',
                       border: '1px solid #E5E7EB',
@@ -225,7 +225,7 @@ export default function DashboardClient({ data }: DashboardClientProps) {
                           ))}
                         </Pie>
                         <Tooltip
-                          formatter={(value: number, name: string) => [value, name]}
+                          formatter={(value, name) => [value, name]}
                           contentStyle={{
                             borderRadius: '10px',
                             border: '1px solid #E5E7EB',

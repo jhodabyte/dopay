@@ -19,7 +19,7 @@ const step1Schema = z.object({
     .string()
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .regex(/\d/, 'La contraseña debe tener al menos un número'),
-  terms: z.literal(true, { errorMap: () => ({ message: 'Debes aceptar los términos' }) }),
+  terms: z.literal(true, { message: 'Debes aceptar los términos' }),
 })
 
 type Step1FormValues = z.infer<typeof step1Schema>
