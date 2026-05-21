@@ -6,6 +6,7 @@ interface BadgeProps {
   variant: BadgeVariant
   children?: React.ReactNode
   label?: string
+  'data-testid'?: string
 }
 
 const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
@@ -17,13 +18,14 @@ const variantStyles: Record<BadgeVariant, { bg: string; text: string }> = {
   vacant: { bg: 'rgba(156,163,175,0.1)', text: '#9CA3AF' },
 }
 
-export default function Badge({ variant, children, label }: BadgeProps) {
+export default function Badge({ variant, children, label, 'data-testid': testId }: BadgeProps) {
   const styles = variantStyles[variant]
 
   return (
     <span
       className={cn('inline-flex items-center px-[10px] py-0.5 rounded-full text-xs font-medium')}
       style={{ backgroundColor: styles.bg, color: styles.text }}
+      data-testid={testId}
     >
       {children ?? label}
     </span>
