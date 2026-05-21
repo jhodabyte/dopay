@@ -11,6 +11,7 @@ interface ButtonProps {
   onClick?: () => void
   type?: 'button' | 'submit' | 'reset'
   href?: string
+  'data-testid'?: string
 }
 
 const variantClasses: Record<NonNullable<ButtonProps['variant']>, string> = {
@@ -35,6 +36,7 @@ export default function Button({
   onClick,
   type = 'button',
   href,
+  'data-testid': testId,
 }: ButtonProps) {
   const classNames = cn(
     'inline-flex items-center justify-center font-medium transition-colors rounded-[10px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0062FF]',
@@ -58,6 +60,7 @@ export default function Button({
       onClick={onClick}
       disabled={disabled || loading}
       className={classNames}
+      data-testid={testId}
     >
       {loading && (
         <svg
