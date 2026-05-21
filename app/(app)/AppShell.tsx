@@ -3,29 +3,17 @@
 import { useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import Topbar from '@/components/layout/Topbar'
+import { TopbarProvider, useTopbar } from '@/lib/topbar-context'
 
 interface AppShellProps {
   children: React.ReactNode
   userFullName?: string
   userEmail?: string
-  topbarTitle?: string
-  topbarSubtitle?: string
-  topbarCtaLabel?: string
-  onTopbarCtaClick?: () => void
-  topbarNotificationCount?: number
 }
 
-export default function AppShell({
-  children,
-  userFullName,
-  userEmail,
-  topbarTitle = 'Dashboard',
-  topbarSubtitle = 'Bienvenido a Dopay',
-  topbarCtaLabel,
-  onTopbarCtaClick,
-  topbarNotificationCount,
-}: AppShellProps) {
+function AppShellInner({ children, userFullName, userEmail }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { config } = useTopbar()
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -55,11 +43,11 @@ export default function AppShell({
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         <Topbar
-          title={topbarTitle}
-          subtitle={topbarSubtitle}
-          ctaLabel={topbarCtaLabel}
-          onCtaClick={onTopbarCtaClick}
-          notificationCount={topbarNotificationCount}
+          title={config.title}
+          subtitle={config.subtitle}
+          ctaLabel={config.ctaLabel}
+          onCtaClick={config.onCtaClick}
+          notificationCount={config.notificationCount}
           onMobileMenuClick={() => setMobileOpen(true)}
         />
         <main
@@ -70,5 +58,15 @@ export default function AppShell({
         </main>
       </div>
     </div>
+  )
+}
+
+export default function AppShell({ children, userFullName, userEmail }: AppShellProps) {
+  return (
+    <TopbarProvider>
+      <AppShellInner userFullName={userFullName} userEmail={userEmail}>
+        {children}
+      </AppShellInner>
+    </TopbarProvider>
   )
 }
