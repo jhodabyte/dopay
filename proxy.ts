@@ -6,6 +6,12 @@ const PROTECTED_ROUTES = ['/dashboard', '/propiedades', '/pagos', '/arrendatario
 const AUTH_ROUTES = ['/login', '/registro']
 
 export async function proxy(request: NextRequest) {
+  const isMockMode = process.env.NEXT_PUBLIC_MOCK_MODE === 'true'
+
+  if (isMockMode) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
