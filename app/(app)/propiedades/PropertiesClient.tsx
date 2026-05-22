@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { Search, SlidersHorizontal, Building2, Plus } from 'lucide-react'
 import PropertyCard from '@/components/properties/PropertyCard'
@@ -9,6 +9,7 @@ import EditPropertyModal from '@/components/properties/EditPropertyModal'
 import Button from '@/components/ui/Button'
 import Select from '@/components/ui/Select'
 import { cn } from '@/lib/utils'
+import { useTopbar } from '@/lib/topbar-context'
 import type { PropertyWithTenant, Property } from '@/lib/types/database'
 
 interface PropertiesClientProps {
@@ -26,6 +27,7 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const { setConfig } = useTopbar()
 
   const searchQuery = searchParams.get('q') ?? ''
   const statusFilter = searchParams.get('status') ?? ''
@@ -33,6 +35,17 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
 
   const [showNewModal, setShowNewModal] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
+
+  const activeCount = properties.filter((p) => p.status === 'active').length
+
+  useEffect(() => {
+    setConfig({
+      title: 'Propiedades',
+      subtitle: `Gestiona tus ${activeCount} inmueble${activeCount !== 1 ? 's' : ''} activo${activeCount !== 1 ? 's' : ''}`,
+      ctaLabel: 'Nueva propiedad',
+      onCtaClick: () => setShowNewModal(true),
+    })
+  }, [setConfig, activeCount])
 
   const uniqueCities = Array.from(new Set(properties.map((p) => p.city))).sort()
   const cityOptions = [
@@ -62,8 +75,6 @@ export default function PropertiesClient({ properties }: PropertiesClientProps) 
     },
     [searchParams, pathname, router]
   )
-
-  const activeCount = properties.filter((p) => p.status === 'active').length
 
   return (
     <>

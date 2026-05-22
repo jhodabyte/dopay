@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   Building2,
@@ -9,6 +9,7 @@ import {
   Star,
   Settings,
   X,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -34,6 +35,14 @@ interface SidebarProps {
 
 export default function Sidebar({ onMobileClose, userFullName, userEmail }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleSignOut() {
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
 
   const initials = userFullName
     ? userFullName
@@ -98,7 +107,7 @@ export default function Sidebar({ onMobileClose, userFullName, userEmail }: Side
           >
             {initials}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p
               className="text-sm font-medium truncate"
               style={{ color: 'var(--color-text)' }}
@@ -112,6 +121,14 @@ export default function Sidebar({ onMobileClose, userFullName, userEmail }: Side
               {userEmail ?? ''}
             </p>
           </div>
+          <button
+            onClick={handleSignOut}
+            className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors shrink-0"
+            aria-label="Cerrar sesión"
+            title="Cerrar sesión"
+          >
+            <LogOut className="w-4 h-4" style={{ color: 'var(--color-text-muted)' }} />
+          </button>
         </div>
       </div>
     </aside>

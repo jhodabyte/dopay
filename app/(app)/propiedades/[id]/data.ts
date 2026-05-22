@@ -7,7 +7,7 @@ interface PropertyDetail {
   payments: Payment[]
 }
 
-export async function getPropertyDetail(propertyId: string, ownerId: string): Promise<PropertyDetail | null> {
+export async function getPropertyDetail(propertyId: string): Promise<PropertyDetail | null> {
   if (MOCK_MODE) {
     const property = mockProperties.find((p) => p.id === propertyId) ?? mockProperties[0]
     const tenant = property.tenant_id
@@ -19,12 +19,14 @@ export async function getPropertyDetail(propertyId: string, ownerId: string): Pr
 
   const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
 
   const { data: property, error: propError } = await supabase
     .from('properties')
     .select('*')
     .eq('id', propertyId)
-    .eq('owner_id', ownerId)
+    .eq('owner_id', user.id)
     .single()
 
   if (propError || !property) return null

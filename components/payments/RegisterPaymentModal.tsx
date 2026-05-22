@@ -130,8 +130,25 @@ export default function RegisterPaymentModal({
           amount: Number(form.amountRaw),
           method: form.method,
           notes: form.notes,
-          notifyTenant: form.notifyTenant,
         })
+      } else {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('No autenticado')
+        const selectedProperty = properties.find((p) => p.id === form.propertyId)
+        const { error } = await supabase.from('payments').insert({
+          property_id: form.propertyId,
+          tenant_id: selectedProperty?.tenant_id ?? null,
+          concept: form.concept,
+          amount: Number(form.amountRaw),
+          due_date: new Date().toISOString().split('T')[0],
+          paid_date: new Date().toISOString().split('T')[0],
+          method: form.method || null,
+          status: 'paid',
+          notes: form.notes || null,
+        })
+        if (error) throw error
       }
       onSuccess?.()
       onClose()

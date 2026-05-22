@@ -135,7 +135,7 @@ export default function RegistroPaso1Page() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
             <div className="flex gap-3">
-              <div className="flex flex-col gap-1 flex-1">
+              <div className="flex flex-col gap-1 flex-1 min-w-0">
                 <label htmlFor="firstName" className="text-sm font-medium" style={{ color: '#4B5563' }}>
                   Nombre
                 </label>
@@ -145,7 +145,7 @@ export default function RegistroPaso1Page() {
                   placeholder="Juan"
                   {...register('firstName')}
                   className={cn(
-                    'h-11 px-3 border rounded-[10px] text-sm outline-none transition-colors',
+                    'w-full h-11 px-3 border rounded-[10px] text-sm outline-none transition-colors',
                     'focus:border-[#0062FF]',
                     errors.firstName ? 'border-[#EF4444]' : 'border-[#E5E7EB]'
                   )}
@@ -156,7 +156,7 @@ export default function RegistroPaso1Page() {
                 )}
               </div>
 
-              <div className="flex flex-col gap-1 flex-1">
+              <div className="flex flex-col gap-1 flex-1 min-w-0">
                 <label htmlFor="lastName" className="text-sm font-medium" style={{ color: '#4B5563' }}>
                   Apellido
                 </label>
@@ -166,7 +166,7 @@ export default function RegistroPaso1Page() {
                   placeholder="García"
                   {...register('lastName')}
                   className={cn(
-                    'h-11 px-3 border rounded-[10px] text-sm outline-none transition-colors',
+                    'w-full h-11 px-3 border rounded-[10px] text-sm outline-none transition-colors',
                     'focus:border-[#0062FF]',
                     errors.lastName ? 'border-[#EF4444]' : 'border-[#E5E7EB]'
                   )}

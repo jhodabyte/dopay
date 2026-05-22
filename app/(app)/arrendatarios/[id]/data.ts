@@ -7,7 +7,7 @@ export interface TenantDetail {
   properties: Property[]
 }
 
-export async function getTenantDetail(tenantId: string, _ownerId: string): Promise<TenantDetail | null> {
+export async function getTenantDetail(tenantId: string): Promise<TenantDetail | null> {
   if (MOCK_MODE) {
     const tenant = mockTenants.find((t) => t.id === tenantId) ?? mockTenants[0]
     if (!tenant) return null
@@ -18,7 +18,33 @@ export async function getTenantDetail(tenantId: string, _ownerId: string): Promi
     return { tenant, payments, properties }
   }
 
-  return null
+  const { createClient } = await import('@/lib/supabase/server')
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: tenant, error: tenantError } = await supabase
+    .from('tenants')
+    .select('*')
+    .eq('id', tenantId)
+    .eq('owner_id', user.id)
+    .single()
+
+  if (tenantError || !tenant) return null
+
+  const { data: payments } = await supabase
+    .from('payments')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .order('due_date', { ascending: false })
+
+  const { data: properties } = await supabase
+    .from('properties')
+    .select('*')
+    .eq('tenant_id', tenantId)
+    .eq('owner_id', user.id)
+
+  return { tenant, payments: payments ?? [], properties: properties ?? [] }
 }
 
 export function computeTenantStats(payments: Payment[], tenant: Tenant) {

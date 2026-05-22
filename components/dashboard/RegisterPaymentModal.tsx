@@ -13,6 +13,7 @@ interface RegisterPaymentModalProps {
   onClose: () => void
   defaultPropertyId?: string
   properties?: Property[]
+  onSuccess?: () => void
 }
 
 interface PaymentFormState {
@@ -59,6 +60,7 @@ export default function RegisterPaymentModal({
   onClose,
   defaultPropertyId,
   properties,
+  onSuccess,
 }: RegisterPaymentModalProps) {
   const availableProperties = properties ?? (MOCK_MODE ? mockProperties : [])
 
@@ -123,6 +125,7 @@ export default function RegisterPaymentModal({
       })
       await new Promise((resolve) => setTimeout(resolve, 500))
       setSaving(false)
+      onSuccess?.()
       onClose()
       return
     }
@@ -147,6 +150,7 @@ export default function RegisterPaymentModal({
         notes: form.notes || null,
       })
 
+      onSuccess?.()
       onClose()
     } catch (error) {
       console.error('Error registrando pago:', error)

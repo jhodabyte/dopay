@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { Upload, X, ImageIcon } from 'lucide-react'
 import Modal from '@/components/ui/Modal'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -52,9 +53,14 @@ export default function EditPropertyModal({ isOpen, onClose, onUpdated, property
   })
   const [errors, setErrors] = useState<FormErrors>({})
   const [saving, setSaving] = useState(false)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [removeExistingImage, setRemoveExistingImage] = useState(false)
+  const [imageDragOver, setImageDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (property) {
+    if (property && isOpen) {
       setForm({
         name: property.name,
         address: property.address,
@@ -65,14 +71,47 @@ export default function EditPropertyModal({ isOpen, onClose, onUpdated, property
         contract_end: property.contract_end ?? '',
       })
       setErrors({})
+      setImageFile(null)
+      setImagePreview(null)
+      setRemoveExistingImage(false)
     }
-  }, [property])
+  }, [property, isOpen])
+
+  useEffect(() => {
+    if (!imageFile) {
+      setImagePreview(null)
+      return
+    }
+    const objectUrl = URL.createObjectURL(imageFile)
+    setImagePreview(objectUrl)
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [imageFile])
 
   function handleChange(field: keyof FormState, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }))
     if (errors[field as keyof FormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
+  }
+
+  function handleFileSelect(file: File) {
+    if (!file.type.startsWith('image/')) return
+    setImageFile(file)
+    setRemoveExistingImage(false)
+  }
+
+  function handleFileDrop(event: React.DragEvent) {
+    event.preventDefault()
+    setImageDragOver(false)
+    const file = event.dataTransfer.files[0]
+    if (file) handleFileSelect(file)
+  }
+
+  function handleRemoveImage() {
+    setImageFile(null)
+    setImagePreview(null)
+    setRemoveExistingImage(true)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   function validate(): boolean {
@@ -87,27 +126,59 @@ export default function EditPropertyModal({ isOpen, onClose, onUpdated, property
     return Object.keys(newErrors).length === 0
   }
 
+  async function uploadImageToStorage(file: File, propertyId: string, userId: string): Promise<string> {
+    const { createClient } = await import('@/lib/supabase/client')
+    const supabase = createClient()
+    const extension = file.name.split('.').pop() ?? 'jpg'
+    const filePath = `${userId}/${propertyId}-${Date.now()}.${extension}`
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('property-images')
+      .upload(filePath, file, { upsert: true })
+    if (uploadError) throw uploadError
+    const { data: { publicUrl } } = supabase.storage
+      .from('property-images')
+      .getPublicUrl(uploadData.path)
+    return publicUrl
+  }
+
   async function handleSave() {
     if (!property || !validate()) return
     setSaving(true)
     try {
       if (MOCK_MODE) {
-        console.log('Mock mode: edit property', property.id, form)
+        console.log('Mock mode: edit property', property.id, form, { imageFile: imageFile?.name })
         await new Promise((resolve) => setTimeout(resolve, 400))
       } else {
         const { createClient } = await import('@/lib/supabase/client')
         const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('No autenticado')
+
+        let imageUrl: string | null | undefined = undefined
+
+        if (imageFile) {
+          imageUrl = await uploadImageToStorage(imageFile, property.id, user.id)
+        } else if (removeExistingImage) {
+          imageUrl = null
+        }
+
+        const updatePayload: Record<string, unknown> = {
+          name: form.name,
+          address: form.address,
+          city: form.city,
+          type: form.type,
+          monthly_rent: Number(form.monthly_rent),
+          contract_start: form.contract_start || null,
+          contract_end: form.contract_end || null,
+        }
+
+        if (imageUrl !== undefined) {
+          updatePayload.image_url = imageUrl
+        }
+
         await supabase
           .from('properties')
-          .update({
-            name: form.name,
-            address: form.address,
-            city: form.city,
-            type: form.type,
-            monthly_rent: Number(form.monthly_rent),
-            contract_start: form.contract_start || null,
-            contract_end: form.contract_end || null,
-          })
+          .update(updatePayload)
           .eq('id', property.id)
       }
       onUpdated()
@@ -116,6 +187,10 @@ export default function EditPropertyModal({ isOpen, onClose, onUpdated, property
       setSaving(false)
     }
   }
+
+  const currentImageUrl = property?.image_url
+  const displayImageSrc = imagePreview ?? (removeExistingImage ? null : currentImageUrl)
+  const hasImage = !!displayImageSrc
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Editar propiedad" size="lg">
@@ -179,6 +254,7 @@ export default function EditPropertyModal({ isOpen, onClose, onUpdated, property
               </span>
               <input
                 id="edit-property-rent"
+                name="edit-property-rent"
                 type="number"
                 min="0"
                 value={form.monthly_rent}
@@ -214,6 +290,72 @@ export default function EditPropertyModal({ isOpen, onClose, onUpdated, property
             onChange={(e) => handleChange('contract_end', e.target.value)}
             name="edit-property-contract-end"
           />
+        </div>
+
+        <div className="flex flex-col">
+          <label
+            className="text-sm font-medium mb-2"
+            style={{ color: 'var(--color-text-secondary)' }}
+          >
+            Foto del inmueble
+          </label>
+
+          {hasImage ? (
+            <div className="relative rounded-xl overflow-hidden border border-[#E5E7EB]" style={{ aspectRatio: '16/7' }}>
+              <img
+                src={displayImageSrc}
+                alt="Vista previa"
+                className="w-full h-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 flex items-center justify-center w-7 h-7 rounded-full shadow-md transition-colors hover:bg-red-100"
+                style={{ backgroundColor: 'white' }}
+                aria-label="Quitar imagen"
+              >
+                <X className="w-4 h-4" style={{ color: '#EF4444' }} />
+              </button>
+            </div>
+          ) : (
+            <div
+              className="border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors p-6"
+              style={{
+                borderColor: imageDragOver ? '#0062FF' : '#E5E7EB',
+                backgroundColor: imageDragOver ? 'rgba(0,98,255,0.04)' : '#F7F8FA',
+              }}
+              onDragOver={(e) => { e.preventDefault(); setImageDragOver(true) }}
+              onDragLeave={() => setImageDragOver(false)}
+              onDrop={handleFileDrop}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImageIcon className="w-6 h-6" style={{ color: 'var(--color-text-muted)' }} />
+              <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
+                Arrastra una imagen o{' '}
+                <span style={{ color: '#0062FF' }}>selecciona un archivo</span>
+              </p>
+              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                JPG, PNG o WEBP
+              </p>
+            </div>
+          )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file) handleFileSelect(file)
+            }}
+          />
+
+          {imageFile && (
+            <p className="text-xs mt-1.5" style={{ color: 'var(--color-text-muted)' }}>
+              Nueva imagen seleccionada: {imageFile.name}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">

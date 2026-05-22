@@ -104,6 +104,7 @@ export default function RegistroPaso3Page() {
         email: step1.email,
         password: step1.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: `${step1.firstName} ${step1.lastName}`,
             phone: step1.phone,

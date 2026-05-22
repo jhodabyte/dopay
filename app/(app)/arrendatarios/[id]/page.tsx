@@ -1,13 +1,12 @@
 import { Suspense } from 'react'
 import Link from 'next/link'
-import { Mail, Phone, Calendar, Building2, Pencil, ChevronRight, Plus } from 'lucide-react'
+import { Mail, Phone, Calendar, Building2, Pencil, ChevronRight } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import Spinner from '@/components/ui/Spinner'
 import TenantPaymentSection from './TenantPaymentSection'
 import { getTenantDetail, computeTenantStats } from './data'
 import { formatCOP } from '@/lib/utils'
-
-const MOCK_OWNER_ID = 'user-001'
+import TopbarConfig from '@/components/layout/TopbarConfig'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -51,7 +50,7 @@ function getTenantStatusInfo(payments: { status: string; due_date: string }[]) {
 
 export default async function ArrendatarioDetailPage({ params }: PageProps) {
   const { id } = await params
-  const detail = await getTenantDetail(id, MOCK_OWNER_ID)
+  const detail = await getTenantDetail(id)
 
   if (!detail) {
     return (
@@ -67,20 +66,10 @@ export default async function ArrendatarioDetailPage({ params }: PageProps) {
 
   return (
     <>
-      <div className="flex items-center justify-between px-6 py-4 bg-white border-b" style={{ borderColor: '#F7F8FA' }}>
-        <div>
-          <h1 className="text-xl font-bold" style={{ color: '#1A1A1A' }}>{tenant.name}</h1>
-          <p className="text-sm" style={{ color: '#4B5563' }}>
-            Arrendatario · Cliente desde {formatDateLong(tenant.created_at)}
-          </p>
-        </div>
-        <button
-          className="inline-flex items-center justify-center gap-1.5 h-8 px-3 text-sm font-medium bg-[#0062FF] text-white rounded-[10px] hover:bg-[#0051D4] transition-colors"
-        >
-          <Plus className="w-4 h-4" />
-          Registrar pago
-        </button>
-      </div>
+      <TopbarConfig
+        title={tenant.name}
+        subtitle={`Arrendatario · Cliente desde ${formatDateLong(tenant.created_at)}`}
+      />
 
       <div className="p-6 flex flex-col gap-6">
         <nav className="flex items-center gap-2 text-sm" aria-label="Migas de pan">

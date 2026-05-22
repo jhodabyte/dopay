@@ -1,9 +1,11 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell, User, CreditCard } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTopbar } from '@/lib/topbar-context'
 
 interface SettingsNavItem {
   label: string
@@ -19,18 +21,17 @@ const SETTINGS_NAV: SettingsNavItem[] = [
 
 export default function AjustesLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { setConfig } = useTopbar()
+
+  useEffect(() => {
+    setConfig({
+      title: 'Configuración',
+      subtitle: 'Ajusta tus preferencias y notificaciones',
+    })
+  }, [setConfig])
 
   return (
     <div className="p-6 md:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold" style={{ color: '#1A1A1A' }}>
-          Configuración
-        </h1>
-        <p className="text-sm mt-1" style={{ color: '#4B5563' }}>
-          Ajusta tus preferencias y notificaciones
-        </p>
-      </div>
-
       <div className="flex flex-col md:flex-row gap-6 items-start">
         <nav
           className="bg-white rounded-2xl border border-gray-100 p-3 shrink-0 w-full md:w-[220px]"

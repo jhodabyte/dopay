@@ -1,14 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { MapPin, ImageIcon, Pencil, User, Phone, Mail, ChevronLeft, ChevronRight } from 'lucide-react'
 import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import EditPropertyModal from '@/components/properties/EditPropertyModal'
+import AssignTenantModal from '@/components/properties/AssignTenantModal'
+import RegisterPaymentModal from '@/components/payments/RegisterPaymentModal'
 import { formatCOP, getPropertyStatusLabel, calculateDaysOverdue, getPaymentStatusLabel } from '@/lib/utils'
 import type { Property, Tenant, Payment, PaymentStatus } from '@/lib/types/database'
 import { useRouter } from 'next/navigation'
+import { useTopbar } from '@/lib/topbar-context'
 
 interface PropertyDetailClientProps {
   property: Property
@@ -75,8 +78,25 @@ function getInitials(name: string): string {
 
 export default function PropertyDetailClient({ property, tenant, payments }: PropertyDetailClientProps) {
   const router = useRouter()
+  const { setConfig } = useTopbar()
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [showRegisterModal, setShowRegisterModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
+
+  const subtitle =
+    property.status === 'active'
+      ? 'Propiedad activa · Contrato vigente'
+      : property.status === 'overdue'
+      ? 'Propiedad en mora'
+      : 'Propiedad desocupada'
+
+  useEffect(() => {
+    setConfig({
+      title: property.name,
+      subtitle,
+    })
+  }, [setConfig, property.name, subtitle])
 
   const totalPages = Math.ceil(payments.length / PAYMENTS_PER_PAGE)
   const paginatedPayments = payments.slice(
@@ -251,7 +271,7 @@ export default function PropertyDetailClient({ property, tenant, payments }: Pro
                   <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
                     Sin arrendatario asignado
                   </p>
-                  <Button variant="secondary" size="sm">
+                  <Button variant="secondary" size="sm" onClick={() => setShowAssignModal(true)}>
                     Asignar arrendatario
                   </Button>
                 </div>
@@ -271,7 +291,7 @@ export default function PropertyDetailClient({ property, tenant, payments }: Pro
                 >
                   Historial de pagos
                 </h2>
-                <Button variant="primary" size="sm">
+                <Button variant="primary" size="sm" onClick={() => setShowRegisterModal(true)}>
                   Registrar nuevo pago
                 </Button>
               </div>
@@ -359,11 +379,24 @@ export default function PropertyDetailClient({ property, tenant, payments }: Pro
         </div>
       </div>
 
+      <AssignTenantModal
+        isOpen={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        onAssigned={() => { setShowAssignModal(false); router.refresh() }}
+        propertyId={property.id}
+      />
       <EditPropertyModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
         onUpdated={() => { setShowEditModal(false); router.refresh() }}
         property={property}
+      />
+      <RegisterPaymentModal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        properties={[property]}
+        defaultPropertyId={property.id}
+        onSuccess={() => { setShowRegisterModal(false); router.refresh() }}
       />
     </>
   )
